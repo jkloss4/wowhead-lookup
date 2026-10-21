@@ -13,7 +13,7 @@ Retail (Interface 120100) and WoW: Forever (Interface 16001, linking to Wowhead'
 - **`/wiki`** (or `/wowhead`) followed by a link (shift-click an item, spell, quest or achievement into the chat box)
   or a search term: `/wiki Thunderfury`. With nothing after it, it links your target.
 
-Inside dungeons and raids retail hides NPCs from addons, so NPCs can't be linked there (use `/wiki <name>`).
+Where the game hides an ID from addons (NPCs in dungeons and raids, on retail), it searches by the name instead.
 
 ## Install
 

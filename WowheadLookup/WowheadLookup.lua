@@ -41,6 +41,19 @@ local function urlForGUID(guid)
 	end
 end
 
+-- An NPC by its ID; where retail hides the ID (dungeons and raids), by its name. Players aren't linked.
+local function unitURL(unit, name)
+	if not (unit and UnitExists(unit)) then return end
+	local url = urlForGUID(UnitGUID(unit))
+	if url then return url, name end
+	local isPlayer = UnitIsPlayer(unit)
+	if isSecret(isPlayer) or isPlayer then return end
+	name = name or UnitName(unit)
+	if name and not isSecret(name) and name ~= "" then
+		return searchURL(name), name
+	end
+end
+
 local function mountURL(mountID)
 	local _, spellID = C_MountJournal.GetMountInfoByID(mountID)
 	return spellID and pageURL("spell", spellID)
@@ -82,6 +95,13 @@ local function urlForTooltip(tooltip)
 	local id = data.id
 	if isSecret(id) then id = nil end
 
+	if kind == "Unit" then
+		local _, unit = tooltip:GetUnit()
+		if unit and not isSecret(unit) then
+			return unitURL(unit, title)
+		end
+	end
+
 	local url
 	if TOOLTIP_PAGES[kind] and id then
 		url = pageURL(TOOLTIP_PAGES[kind], id)
@@ -103,9 +123,7 @@ local function urlForHovered()
 	if url then return url, title end
 	url, title = urlForTooltip(ItemRefTooltip)
 	if url then return url, title end
-	if UnitExists("mouseover") then
-		return urlForGUID(UnitGUID("mouseover"))
-	end
+	return unitURL("mouseover")
 end
 
 -- Chat link types and their Wowhead pages; |Hitem:19019:...|h[Thunderfury...]|h
@@ -211,8 +229,8 @@ SLASH_WOWHEADLOOKUP1 = "/wiki"
 SLASH_WOWHEADLOOKUP2 = "/wowhead"
 SlashCmdList.WOWHEADLOOKUP = function(msg)
 	local url, title = urlForText(msg or "")
-	if not url and UnitExists("target") then
-		url = urlForGUID(UnitGUID("target"))
+	if not url then
+		url, title = unitURL("target")
 	end
 	if url then
 		showLink(url, title)
