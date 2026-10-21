@@ -1,0 +1,6 @@
+<Bindings>
+	<!-- Key Bindings > AddOns > Wowhead Lookup. The game loads this file itself (it isn't in the TOC). -->
+	<Binding name="WOWHEADLOOKUP_HOVERED" header="WOWHEADLOOKUP" category="ADDONS">
+		WowheadLookup_LinkHovered()
+	</Binding>
+</Bindings>
