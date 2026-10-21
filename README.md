@@ -8,8 +8,9 @@ Retail (Interface 120100) and WoW: Forever (Interface 16001, linking to Wowhead'
 ## Use
 
 - **A key for what you're hovering:** set it in Options > Keybindings > AddOns > Wowhead Lookup. It links whatever's
-  in the tooltip (in your bags, action bars, quest log, achievements, a chat link you've clicked open, an NPC in the
-  world...). Anything else with a name in its tooltip is searched for by that name.
+  in the tooltip (in your bags, action bars, achievements, a chat link you've clicked open, an NPC in the
+  world...), and quests and achievements in the quest log, on the map and in the objective tracker. Anything else with
+  a name in its tooltip is searched for by that name.
 - **`/wiki`** (or `/wowhead`) followed by a link (shift-click an item, spell, quest or achievement into the chat box)
   or a search term: `/wiki Thunderfury`. With nothing after it, it links your target.
 

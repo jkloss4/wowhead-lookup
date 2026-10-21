@@ -117,9 +117,62 @@ local function urlForTooltip(tooltip)
 	return url, title
 end
 
+-- Quest log entries, map pins and the objective tracker don't put the quest (or achievement) in their tooltip, but
+-- the hovered frame or one of its parents knows it.
+local TRACKER_PAGES = {
+	QuestObjectiveTracker = "quest",
+	CampaignQuestObjectiveTracker = "quest",
+	WorldQuestObjectiveTracker = "quest",
+	BonusObjectiveTracker = "quest",
+	AchievementObjectiveTracker = "achievement",
+}
+
+local function readNumber(frame, key)
+	local value = frame[key]
+	if type(value) == "number" and not isSecret(value) then
+		return value
+	end
+end
+
+local function questURL(questID)
+	return pageURL("quest", questID), C_QuestLog.GetTitleForQuestID and C_QuestLog.GetTitleForQuestID(questID)
+end
+
+local function urlForFrame(frame)
+	for _ = 1, 8 do
+		if not frame or (frame.IsForbidden and frame:IsForbidden()) then return end
+		local questID = readNumber(frame, "questID")
+		if questID and questID > 0 then
+			return questURL(questID)
+		end
+		local id = readNumber(frame, "id")
+		local module = rawget(frame, "parentModule")
+		if id and module then
+			for name, kind in pairs(TRACKER_PAGES) do
+				if _G[name] == module then
+					if kind == "quest" then
+						return questURL(id)
+					end
+					return pageURL(kind, id), select(2, GetAchievementInfo(id))
+				end
+			end
+		end
+		frame = frame:GetParent()
+	end
+end
+
+local function hoveredFrame()
+	if GetMouseFoci then
+		return GetMouseFoci()[1]
+	end
+	return GetMouseFocus and GetMouseFocus()
+end
+
 local function urlForHovered()
-	-- the tooltip under the mouse, then a chat link opened by clicking it
+	-- the tooltip under the mouse, what's under the mouse, then a chat link opened by clicking it
 	local url, title = urlForTooltip(GameTooltip)
+	if url then return url, title end
+	url, title = urlForFrame(hoveredFrame())
 	if url then return url, title end
 	url, title = urlForTooltip(ItemRefTooltip)
 	if url then return url, title end
