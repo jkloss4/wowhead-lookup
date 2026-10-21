@@ -138,6 +138,25 @@ local function questURL(questID)
 	return pageURL("quest", questID), C_QuestLog.GetTitleForQuestID and C_QuestLog.GetTitleForQuestID(questID)
 end
 
+local function achievementURL(achievementID)
+	return pageURL("achievement", achievementID), select(2, GetAchievementInfo(achievementID))
+end
+
+-- In the Achievements window every achievement (list, summary, meta criteria) keeps its ID in .id; so do the
+-- category and statistic buttons, with other IDs.
+local function isAchievementButton(frame)
+	if not (AchievementFrame and AchievementFrame:IsShown()) then return end
+	if (AchievementCategoryTemplateButtonMixin and frame.OnEnter == AchievementCategoryTemplateButtonMixin.OnEnter)
+		or (AchievementStatTemplateMixin and frame.OnEnter == AchievementStatTemplateMixin.OnEnter) then
+		return
+	end
+	local parent = frame:GetParent()
+	while parent do
+		if parent == AchievementFrame then return true end
+		parent = parent:GetParent()
+	end
+end
+
 local function urlForFrame(frame)
 	for _ = 1, 8 do
 		if not frame or (frame.IsForbidden and frame:IsForbidden()) then return end
@@ -153,9 +172,12 @@ local function urlForFrame(frame)
 					if kind == "quest" then
 						return questURL(id)
 					end
-					return pageURL(kind, id), select(2, GetAchievementInfo(id))
+					return achievementURL(id)
 				end
 			end
+		end
+		if id and isAchievementButton(frame) and GetAchievementInfo(id) then
+			return achievementURL(id)
 		end
 		frame = frame:GetParent()
 	end
