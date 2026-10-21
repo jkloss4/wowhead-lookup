@@ -110,9 +110,9 @@ local function urlForTooltip(tooltip)
 	elseif data.guid then
 		url = urlForGUID(data.guid)
 	end
-	-- anything else with a name (pets, battle pets, players' gear sets...) is looked up by name
+	-- anything else with a name (pets, players' gear sets...) is looked up by name
 	if not url and title and kind ~= "Unit" then
-		url = searchURL(title)
+		return searchURL(title), title, true
 	end
 	return url, title
 end
@@ -142,18 +142,50 @@ local function achievementURL(achievementID)
 	return pageURL("achievement", achievementID), select(2, GetAchievementInfo(achievementID))
 end
 
+local function isInside(frame, ancestor)
+	if not (ancestor and ancestor:IsShown()) then return end
+	while frame do
+		if frame == ancestor then return true end
+		frame = frame:GetParent()
+	end
+end
+
 -- In the Achievements window every achievement (list, summary, meta criteria) keeps its ID in .id; so do the
 -- category and statistic buttons, with other IDs.
 local function isAchievementButton(frame)
-	if not (AchievementFrame and AchievementFrame:IsShown()) then return end
 	if (AchievementCategoryTemplateButtonMixin and frame.OnEnter == AchievementCategoryTemplateButtonMixin.OnEnter)
 		or (AchievementStatTemplateMixin and frame.OnEnter == AchievementStatTemplateMixin.OnEnter) then
 		return
 	end
-	local parent = frame:GetParent()
-	while parent do
-		if parent == AchievementFrame then return true end
-		parent = parent:GetParent()
+	return isInside(frame, AchievementFrame)
+end
+
+-- A battle pet's page is its NPC's.
+local function petURL(speciesID)
+	local name, _, _, companionID = C_PetJournal.GetPetInfoBySpeciesID(speciesID)
+	if companionID and companionID > 0 then
+		return pageURL("npc", companionID), name
+	end
+end
+
+-- An appearance can come from several items: the one named in its tooltip (Tab cycles them), or the first.
+local function appearanceURL(visualID)
+	local sourceIDs = C_TransmogCollection.GetAllAppearanceSources(visualID)
+	if not sourceIDs then return end
+	local shown = GameTooltip:IsShown() and GameTooltipTextLeft1:GetText()
+	if isSecret(shown) then shown = nil end
+	local first
+	for _, sourceID in ipairs(sourceIDs) do
+		local info = C_TransmogCollection.GetSourceInfo(sourceID)
+		if info and info.itemID then
+			first = first or info
+			if info.name == shown then
+				return pageURL("item", info.itemID), info.name
+			end
+		end
+	end
+	if first then
+		return pageURL("item", first.itemID), first.name
 	end
 end
 
@@ -163,6 +195,34 @@ local function urlForFrame(frame)
 		local questID = readNumber(frame, "questID")
 		if questID and questID > 0 then
 			return questURL(questID)
+		end
+
+		-- Collections: mounts (.spellID), pets (.speciesID), appearances (.visualInfo), sets (.setID) and set items
+		-- (.itemID)
+		local itemID = readNumber(frame, "itemID")
+		if itemID and itemID > 0 then
+			return pageURL("item", itemID), C_Item.GetItemNameByID(itemID)
+		end
+		local spellID = readNumber(frame, "spellID")
+		if spellID and spellID > 0 then
+			return pageURL("spell", spellID), C_Spell and C_Spell.GetSpellName(spellID)
+		end
+		local speciesID = readNumber(frame, "speciesID")
+		if speciesID and speciesID > 0 and C_PetJournal then
+			local url, name = petURL(speciesID)
+			if url then return url, name end
+		end
+		if WardrobeCollectionFrame and isInside(frame, WardrobeCollectionFrame) then
+			local visualInfo = frame.visualInfo
+			if type(visualInfo) == "table" and visualInfo.visualID then
+				local url, name = appearanceURL(visualInfo.visualID)
+				if url then return url, name end
+			end
+			local setID = readNumber(frame, "setID")
+			if setID and setID > 0 then
+				local info = C_TransmogSets.GetSetInfo(setID)
+				return pageURL("transmog-set", setID), info and info.name
+			end
 		end
 		local id = readNumber(frame, "id")
 		local module = rawget(frame, "parentModule")
@@ -191,10 +251,12 @@ local function hoveredFrame()
 end
 
 local function urlForHovered()
-	-- the tooltip under the mouse, what's under the mouse, then a chat link opened by clicking it
-	local url, title = urlForTooltip(GameTooltip)
-	if url then return url, title end
-	url, title = urlForFrame(hoveredFrame())
+	-- the tooltip under the mouse, what's under the mouse, then a chat link opened by clicking it. A tooltip that
+	-- could only be searched by name waits for the hovered frame, which may know the ID (pets in the Pet Journal).
+	local url, title, isSearch = urlForTooltip(GameTooltip)
+	if url and not isSearch then return url, title end
+	local frameURL, frameTitle = urlForFrame(hoveredFrame())
+	if frameURL then return frameURL, frameTitle end
 	if url then return url, title end
 	url, title = urlForTooltip(ItemRefTooltip)
 	if url then return url, title end
