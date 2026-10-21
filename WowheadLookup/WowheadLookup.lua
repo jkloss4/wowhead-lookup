@@ -189,10 +189,29 @@ local function appearanceURL(visualID)
 	end
 end
 
+-- Quests offered or handed in at an NPC: the gossip window's quest buttons keep the quest as their ID; the quest
+-- greeting window's buttons keep their place in its list (.isActive: handing in or offered); a quest's own page in the
+-- quest window is GetQuestID().
+local function npcQuestID(frame)
+	if GossipSharedQuestButtonMixin and frame.UpdateTitleForQuest == GossipSharedQuestButtonMixin.UpdateTitleForQuest then
+		return frame:GetID()
+	end
+	if QuestFrame and isInside(frame, QuestFrame) then
+		if frame.isActive == 1 then
+			return GetActiveQuestID(frame:GetID())
+		elseif frame.isActive == 0 then
+			return (select(5, GetAvailableQuestInfo(frame:GetID())))
+		elseif frame == QuestFrame then
+			local questID = GetQuestID()
+			return questID ~= 0 and questID or nil
+		end
+	end
+end
+
 local function urlForFrame(frame)
 	for _ = 1, 8 do
 		if not frame or (frame.IsForbidden and frame:IsForbidden()) then return end
-		local questID = readNumber(frame, "questID")
+		local questID = readNumber(frame, "questID") or npcQuestID(frame)
 		if questID and questID > 0 then
 			return questURL(questID)
 		end
