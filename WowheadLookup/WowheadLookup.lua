@@ -197,7 +197,7 @@ local function urlForFrame(frame)
 			return questURL(questID)
 		end
 
-		-- Collections: mounts (.spellID), pets (.speciesID), appearances (.visualInfo), sets (.setID) and set items
+		-- Collections: mounts (.spellID), pets (.speciesID), appearances (.visualInfo) and the items in a set
 		-- (.itemID)
 		local itemID = readNumber(frame, "itemID")
 		if itemID and itemID > 0 then
@@ -217,12 +217,6 @@ local function urlForFrame(frame)
 			if type(visualInfo) == "table" and visualInfo.visualID then
 				local url, name = appearanceURL(visualInfo.visualID)
 				if url then return url, name end
-			end
-			-- Wowhead numbers transmog sets its own way (the game's set IDs don't match), so search by name
-			local setID = readNumber(frame, "setID")
-			local info = setID and C_TransmogSets.GetSetInfo(setID)
-			if info and info.name then
-				return searchURL(info.name), info.name
 			end
 		end
 		local id = readNumber(frame, "id")

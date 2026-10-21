@@ -11,7 +11,7 @@ Retail (Interface 120100) and WoW: Forever (Interface 16001, linking to Wowhead'
   in the tooltip (in your bags, action bars, achievements, a chat link you've clicked open, an NPC in the
   world...), quests in the quest log, on the map and in the objective tracker, and achievements in the tracker and the
   Achievements window, and in the Collections window mounts, pets (their NPC's page), appearances (the item named in
-  the tooltip; Tab picks another) and sets (by name: Wowhead numbers them its own way). Anything else with a name in its tooltip is searched for by that name.
+  the tooltip; Tab picks another) and the items in a set. Anything else with a name in its tooltip is searched for by that name.
 - **`/wiki`** (or `/wowhead`) followed by a link (shift-click an item, spell, quest or achievement into the chat box)
   or a search term: `/wiki Thunderfury`. With nothing after it, it links your target.
 
