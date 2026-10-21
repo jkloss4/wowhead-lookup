@@ -218,10 +218,11 @@ local function urlForFrame(frame)
 				local url, name = appearanceURL(visualInfo.visualID)
 				if url then return url, name end
 			end
+			-- Wowhead numbers transmog sets its own way (the game's set IDs don't match), so search by name
 			local setID = readNumber(frame, "setID")
-			if setID and setID > 0 then
-				local info = C_TransmogSets.GetSetInfo(setID)
-				return pageURL("transmog-set", setID), info and info.name
+			local info = setID and C_TransmogSets.GetSetInfo(setID)
+			if info and info.name then
+				return searchURL(info.name), info.name
 			end
 		end
 		local id = readNumber(frame, "id")
