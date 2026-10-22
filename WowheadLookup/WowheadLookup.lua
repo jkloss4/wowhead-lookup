@@ -216,8 +216,8 @@ local function urlForFrame(frame)
 			return questURL(questID)
 		end
 
-		-- Collections: mounts (.spellID), pets (.speciesID), appearances (.visualInfo) and the items in a set
-		-- (.itemID)
+		-- Collections: mounts (.spellID), pets (.speciesID), appearances (GetAppearanceInfo) and the items in a set
+		-- (.itemID); the transmog window: the outfit's slots (GetSlotInfo) and its collection (GetAppearanceInfo)
 		local itemID = readNumber(frame, "itemID")
 		if itemID and itemID > 0 then
 			return pageURL("item", itemID), C_Item.GetItemNameByID(itemID)
@@ -231,11 +231,27 @@ local function urlForFrame(frame)
 			local url, name = petURL(speciesID)
 			if url then return url, name end
 		end
-		if WardrobeCollectionFrame and isInside(frame, WardrobeCollectionFrame) then
-			local visualInfo = frame.visualInfo
-			if type(visualInfo) == "table" and visualInfo.visualID then
-				local url, name = appearanceURL(visualInfo.visualID)
+		-- an appearance model (Collections or the transmog window)
+		if type(frame.GetAppearanceInfo) == "function" then
+			local ok, info = pcall(frame.GetAppearanceInfo, frame)
+			if ok and type(info) == "table" and info.visualID then
+				local url, name = appearanceURL(info.visualID)
 				if url then return url, name end
+			end
+		end
+		-- a slot of the transmog window's outfit: its appearance is a source (an item); not an illusion or a hidden
+		-- or empty slot
+		if TransmogSlotMixin and frame.GetSlotInfo == TransmogSlotMixin.GetSlotInfo then
+			local location = frame.slotData and frame.slotData.transmogLocation
+			local ok, info = pcall(frame.GetSlotInfo, frame)
+			if ok and info and location and not location:IsIllusion()
+				and info.displayType ~= Enum.TransmogOutfitDisplayType.Unassigned
+				and info.displayType ~= Enum.TransmogOutfitDisplayType.Hidden
+				and not C_TransmogCollection.IsAppearanceHiddenVisual(info.transmogID) then
+				local sourceItemID = C_TransmogCollection.GetSourceItemID(info.transmogID)
+				if sourceItemID then
+					return pageURL("item", sourceItemID), C_Item.GetItemNameByID(sourceItemID)
+				end
 			end
 		end
 		local id = readNumber(frame, "id")
