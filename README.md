@@ -3,7 +3,7 @@
 Gives you the Wowhead link for an item, spell, quest, achievement, currency or NPC, ready to copy into your browser.
 Addons can't open a browser, so the link is shown selected in a box: press **Ctrl+C** (the box closes) and paste it.
 
-Retail (Interface 120100) and WoW: Forever (Interface 16001, linking to Wowhead's Classic pages).
+Retail (Interface 120100) and WoW: Forever (Interface 16001, linking to Wowhead's Forever pages).
 
 ## Use
 

@@ -1,9 +1,12 @@
 -- Wowhead Lookup: a key (Key Bindings > AddOns) or /wiki makes a Wowhead link for what you're hovering, a chat link or
 -- a search term, and shows it in a box to copy. Addons can't open a browser, so the link is copied with Ctrl+C.
 
-local isClassic = select(4, GetBuildInfo()) < 20000
--- WoW: Forever's items, spells and quests are the classic ones
-local BASE_URL = isClassic and "https://www.wowhead.com/classic/" or "https://www.wowhead.com/"
+-- Wowhead has its own section per game: WoW: Forever (interface 16xxx) at /forever/, Classic Era (1xxxx below
+-- that) at /classic/, retail at the root.
+local interface = select(4, GetBuildInfo())
+local BASE_URL = (interface >= 20000 and "https://www.wowhead.com/")
+	or (interface >= 16000 and "https://www.wowhead.com/forever/")
+	or "https://www.wowhead.com/classic/"
 
 local DIALOG = "WOWHEAD_LOOKUP_LINK"
 
