@@ -343,6 +343,10 @@ StaticPopupDialogs[DIALOG] = {
 	button1 = CLOSE,
 	hasEditBox = true,
 	editBoxWidth = 350,
+	-- no length limit: the popups share their edit boxes, and Forever keeps the limit of the last dialog that set
+	-- one (a 12-letter limit cut the link to "https://www.")
+	maxLetters = 0,
+	maxBytes = 0,
 	OnShow = function(dialog, data)
 		local editBox = dialog:GetEditBox()
 		shownEditBox = editBox
@@ -350,6 +354,8 @@ StaticPopupDialogs[DIALOG] = {
 			hookedEditBoxes[editBox] = true
 			editBox:HookScript("OnKeyDown", onKeyDown)
 		end
+		editBox:SetMaxLetters(0)
+		editBox:SetMaxBytes(0)
 		editBox:SetText(data)
 		editBox:SetFocus()
 		editBox:HighlightText()
